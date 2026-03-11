@@ -157,6 +157,23 @@
         },
         {
             "series": "Logistic Regression",
+            "level": 2,
+            "id": "logreg_lvl2_multiclass_softmax_optimizer_comparison",
+            "algorithm": "Softmax Regression (Multiclass with Optimizer Comparison)",
+            "description": "Multiclass softmax regression on Iris dataset; compare three optimizers (Adam, SGD, RMSProp); measure training time and evaluation metrics for each optimizer.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "dataset": "Iris dataset from sklearn (150 samples, 4 features, 3 classes).",
+                "preprocessing": "Feature standardization using StandardScaler.",
+                "implementation": "nn.Module; CrossEntropyLoss; compare Adam, SGD, RMSProp optimizers.",
+                "training": "100 epochs for each optimizer; measure and report total training time.",
+                "evaluation": "Report validation accuracy and F1 macro for each optimizer. Identify optimizer with fastest convergence (lowest training time) and best performance (highest validation accuracy).",
+                "validation": "Train Accuracy > 0.85, Val Accuracy > 0.70, Val F1 Macro > 0.85, Train Loss < 1.0, Accuracy gap < 0.15 (applied to all optimizers).",
+                "output": "Save training_history.json (all optimizer loss curves), metrics.json (all optimizer metrics), times.json (training times for each optimizer). Report comparison table and identify fastest optimizer for convergence."
+            }
+        },
+        {
+            "series": "Logistic Regression",
             "level": 3,
             "id": "logreg_lvl3_imbalanced_metrics",
             "algorithm": "Logistic Regression (Imbalanced + Metrics)",

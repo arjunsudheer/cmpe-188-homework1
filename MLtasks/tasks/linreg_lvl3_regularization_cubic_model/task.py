@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import numpy as np
 import torch
 import torch.nn as nn
@@ -368,4 +369,5 @@ def main():
     return 0 if checks_passed else 1
 
 if __name__ == '__main__':
-    exit(main())
+    exit_code = main()
+    sys.exit(exit_code)
