@@ -94,6 +94,25 @@
         },
         {
             "series": "Linear Regression",
+            "level": 4,
+            "id": "linreg_lvl4_sklearn_production_diabetes_dataset_plus_early_stopping",
+            "algorithm": "Linear Regression (Diabetes Dataset + Early Stopping Comparison)",
+            "description": "Use sklearn diabetes dataset; compare PyTorch vs Sklearn; implement and compare early stopping vs no early stopping.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "data": "Use sklearn.datasets.load_diabetes; train/test split (80/20).",
+                "eda": "Correlation matrix + target distribution (disease_progression); save plots.",
+                "preprocessing": "Manual StandardScaler for PyTorch; sklearn scaler for sklearn.",
+                "early_stopping": "Implement early stopping with patience=20 on validation loss; compare with no early stopping (200 epochs).",
+                "training": "Train two models: (1) no early stopping (200 epochs), (2) with early stopping (patience=20); track train/val loss for both.",
+                "api": "PyTorch model wrapped with fit()/predict() sklearn-style; support early_stopping parameter.",
+                "comparison": "Report metrics for both approaches; compare epochs trained, final R2/RMSE, and assess early stopping effectiveness.",
+                "visualization": "Save training history plots for both approaches; overlay comparison; correlation matrix; target distribution.",
+                "output": "Metrics JSON comparing both early stopping approaches; training history JSON for both; standard comparison with sklearn."
+            }
+        },
+        {
+            "series": "Linear Regression",
             "level": 3,
             "id": "linreg_lvl3_regularization_cubic_model",
             "algorithm": "Cubic Polynomial Regression (Ridge + SGD + Feature Scaling)",
