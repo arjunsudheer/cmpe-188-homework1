@@ -127,6 +127,23 @@
             }
         },
         {
+            "series": "Linear Regression",
+            "level": 4,
+            "id": "linreg_ec_natality",
+            "algorithm": "Polynomial Linear Regression (Adam + ReduceLROnPlateau + BigQuery Natality)",
+            "description": "Predict infant birth weight from maternal and pregnancy features loaded from the BigQuery public natality dataset (137 M rows). Polynomial expansion of the dominant predictor (gestation_weeks) plus interaction terms allows a single linear layer to approximate the nonlinear fetal growth curve.",
+            "interface_protocol": "pytorch_task_v1",
+            "how_data_is_loaded_from_bigquery": "A google-cloud-bigquery Python client is created with the caller's GCP project ID. Authentication is resolved automatically from Application Default Credentials (gcloud auth application-default login). The SQL query uses TABLESAMPLE SYSTEM(2 PERCENT) to randomly sample ~2.7 M rows at the BigQuery storage layer before any filtering — avoiding a full 137 M-row table scan. A WHERE clause then applies NULL checks and range filters (gestation 20–45 weeks, weight 1–15 lbs, mother age 14–50), and LIMIT 150000 caps the result. client.query(sql).to_dataframe() streams the result into a local pandas DataFrame via the BigQuery Storage Read API (fast columnar path). Boolean columns (cigarette_use, alcohol_use) are cast to INT64 directly in SQL so they arrive as 0/1 integers without any Python post-processing.",
+            "going_beyond": "This task goes beyond the reference examples in three ways: (1) It uses a new, large-scale real-world dataset — the public natality table with 137 M rows of US birth records — rather than a synthetic or toy dataset. (2) It explores a new BigQuery feature: TABLESAMPLE SYSTEM, a native block-level random sampler that operates at the storage layer and is far more efficient than ORDER BY RAND(). (3) It introduces polynomial feature engineering (gestation_weeks², gestation_weeks³) and cross-feature interaction terms (gestation × weight_gain, mother_age × cigarette_use) in Python post-load, showing the full data-to-model pipeline spanning both BigQuery SQL and PyTorch.",
+            "requirements": {
+                "math": "Polynomial linear model: weight = W·φ(x) + b, where φ(x) = [mother_age, gestation_weeks, gestation_weeks², gestation_weeks³, weight_gain_pounds, plurality, ever_born, cigarette_use, alcohol_use, gestation×weight_gain, gestation×plurality, mother_age×cigarette_use]. Features standardized with StandardScaler before training.",
+                "data": "Loaded via google-cloud-bigquery from `bigquery-public-data.samples.natality` using TABLESAMPLE SYSTEM(2 PERCENT) + WHERE + LIMIT 150000. Split 70% train / 15% val / 15% test.",
+                "implementation": "nn.Linear(12 → 1) with no activation. MSELoss, Adam optimiser (weight_decay=1e-4), ReduceLROnPlateau scheduler (patience=8, factor=0.5). Best val checkpoint restored after training.",
+                "visualization": "Save linreg_bq_natality_predictions_vs_actual.png and linreg_bq_natality_residuals.png",
+                "validation": "Evaluate on train, val, and test splits. Report MSE, RMSE, R², and MAE. Save metrics.json and training_history.json. Assert val R² ≥ 0.35 and val MSE ≤ 1.8."
+            }
+        },
+        {
             "series": "Logistic Regression",
             "level": 1,
             "id": "logreg_lvl1_binary_raw",
@@ -217,6 +234,23 @@
                 "implementation": "Compute ECE (Expected Calibration Error) manually; optimize threshold for F1.",
                 "visualization": "Reliability diagram + ROC curve.",
                 "validation": "ECE decreases after calibration step (compare before/after)."
+            }
+        },
+        {
+            "series": "Logistic Regression",
+            "level": 4,
+            "id": "logreg_ec_penguins",
+            "algorithm": "Logistic Regression (SGD + CosineAnnealingLR + BigQuery Penguins)",
+            "description": "Binary classification to identify Gentoo penguins by physical measurements loaded from the BigQuery public ml_datasets.penguins table. The binary target label is derived entirely via a CASE WHEN expression inside the SQL query, demonstrating BigQuery-side feature engineering before any data reaches Python.",
+            "interface_protocol": "pytorch_task_v1",
+            "how_data_is_loaded_from_bigquery": "A google-cloud-bigquery Python client is created with the caller's GCP project ID, authenticating via Application Default Credentials. The SQL query selects four physical measurement columns with explicit CAST(... AS FLOAT64) for type safety, and derives the binary target label is_gentoo = CASE WHEN species LIKE '%Gentoo%' THEN 1 ELSE 0 END entirely inside BigQuery — so no label encoding is needed in Python. A WHERE clause filters out any rows where any measurement column is NULL. client.query(sql).to_dataframe() streams the result into a local pandas DataFrame. The resulting DataFrame is immediately split and standardized with StandardScaler before conversion to PyTorch TensorDatasets.",
+            "going_beyond": "This task goes beyond the reference examples in two ways: (1) It applies a different algorithm — logistic regression for binary classification — contrasting directly with the linear regression task above. (2) It uses a new BigQuery feature engineering pattern: the binary target label is computed via a CASE WHEN expression directly in the SQL query, meaning BigQuery performs the label encoding before any data leaves the cloud. This is a practical pattern for production ML pipelines where label logic should live with the data, not in application code.",
+            "requirements": {
+                "math": "Logistic model: P(Gentoo) = σ(β₀ + β₁·culmen_length + β₂·culmen_depth + β₃·flipper_length + β₄·body_mass). σ is the sigmoid function. Binary Cross-Entropy loss.",
+                "data": "Loaded via google-cloud-bigquery from `bigquery-public-data.ml_datasets.penguins`. Binary label is_gentoo derived in SQL via CASE WHEN. NULL rows filtered in WHERE clause. Stratified split 70% train / 15% val / 15% test.",
+                "implementation": "nn.Linear(4 → 1) + sigmoid activation. BCELoss, SGD with momentum=0.9, CosineAnnealingLR scheduler over 150 epochs.",
+                "visualization": "Save logreg_bq_penguins_roc_curve.png (ROC + training history) and logreg_bq_penguins_confusion.png (confusion matrix heatmap)",
+                "validation": "Evaluate on train, val, and test splits. Report accuracy, F1, ROC-AUC, MSE (Brier), and BCE loss. Save metrics.json and training_history.json. Assert val accuracy ≥ 0.88 and val ROC-AUC ≥ 0.92."
             }
         },
         {
