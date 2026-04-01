@@ -689,6 +689,23 @@
             }
         },
         {
+            "series": "Neural Networks (MLP)",
+            "level": 4,
+            "id": "mlp_lvl4_hparam_sweep_multilabel",
+            "algorithm": "MLP (RCV1 Multilabel + Hyperparameter Search)",
+            "description": "Grid or random search over depth/width/lr/weight_decay on sklearn RCV1 multilabel topic labels; best config by validation micro-F1; AdamW and BCEWithLogitsLoss.",
+            "interface_protocol": "pytorch_task_v1",
+            "going_beyond": "Uses sklearn.datasets.fetch_rcv1 (sparse TF-IDF features and multilabel indicators) instead of synthetic regression data. Applies TruncatedSVD and StandardScaler fit on training data only to obtain dense inputs for the MLP. Multilabel targets use BCEWithLogitsLoss; optimization uses AdamW (distinct from plain Adam). Leaderboard rows include val_mse, val_r2, val_mae, val_micro_f1, and val_macro_f1.",
+            "requirements": {
+                "data": "sklearn.datasets.fetch_rcv1 with subset='train'; optional subsample (default max 6000 documents) with fixed random_state for reproducibility; stratified-style random train/val/test split via train_test_split.",
+                "preprocessing": "TruncatedSVD (default 256 components, capped by sample/feature count) fit on training features only; StandardScaler on SVD output fit on train only.",
+                "implementation": "nn.Module MLP with per-label logits; BCEWithLogitsLoss; AdamW; ReduceLROnPlateau on validation loss; early stopping. hyperparameter_search(train_loader, val_loader, input_dim, output_dim, ...) must use the same loaders as final training so splits match.",
+                "output": "metrics.json includes sweep leaderboard under metrics['sweep'], best_config, and train/validation/test metric dicts (mse, r2, mae, micro_f1, macro_f1).",
+                "evaluation": "evaluate() returns MSE, R2, and MAE computed on sigmoid probabilities vs binary targets (flattened for R2), plus micro_f1 and macro_f1 at threshold 0.5 on the given loader. Use a numerically stable sigmoid for NumPy (e.g. branch on sign of logits) so large |logits| do not overflow exp.",
+                "validation": "main() trains, evaluates on train and validation (and test), prints all metrics, asserts val micro_f1 >= 0.12 and val mse <= 0.45, and asserts the sweep-selected config’s final val micro-F1 is at least the baseline (depth=2, width=32) val micro-F1. After save_artifacts, reload model.pt with config.json, re-run evaluate() on val and test, assert metrics match the in-memory results and metrics.json within tolerance, and re-assert baseline/micro-F1/MSE gates on the reloaded weights; sys.exit(1) on failure."
+            }
+        },
+        {
             "series": "Convolutional Neural Networks",
             "level": 1,
             "id": "cnn_lvl1_from_scratch_conv",
