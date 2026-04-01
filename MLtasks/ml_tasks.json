@@ -651,6 +651,21 @@
         },
         {
             "series": "Neural Networks (MLP)",
+            "level": 2,
+            "id": "mlp_lvl2_autograd_modules_covtype_dataset",
+            "algorithm": "MLP (Covertype + nn.Module + Autograd)",
+            "description": "Same MLP stack as lvl2 (dropout, BatchNorm) on sklearn Covertype tabular data; AdamW and class-weighted cross-entropy for imbalance.",
+            "interface_protocol": "pytorch_task_v1",
+            "going_beyond": "Uses the real UCI Covertype benchmark (fetch_covtype: 54 features, 7 classes) instead of synthetic data. Adds stratified subsampling for practical runtimes, train-only StandardScaler, AdamW with weight decay, and inverse-frequency loss weights fit on the training split only to address class imbalance.",
+            "requirements": {
+                "data": "sklearn.datasets.fetch_covtype; map targets from 1–7 to 0–6 for CrossEntropyLoss.",
+                "preprocessing": "Optional stratified subsample (default max 100k rows); stratified 80/20 train–val split; StandardScaler fit on training data only.",
+                "implementation": "nn.Module MLP with configurable dropout and BatchNorm1d; AdamW optimizer; CrossEntropyLoss with per-class weights from training label counts.",
+                "validation": "main() prints train and validation metrics; asserts train accuracy > 0.55, val accuracy > 0.5, val F1 (weighted) > 0.45, mild overfit gap (val acc ≥ train acc − 0.15), and training loss decreases; sys.exit(1) if checks fail."
+            }
+        },
+        {
+            "series": "Neural Networks (MLP)",
             "level": 3,
             "id": "mlp_lvl3_training_tricks",
             "algorithm": "MLP (Schedulers + AMP + Logging)",

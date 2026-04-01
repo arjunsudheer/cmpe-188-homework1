@@ -208,3 +208,6 @@ __marimo__/
 
 # Output directories
 MLtasks/tasks/**/output/
+
+# scikit-learn datasets
+MLtasks/tasks/**/sklearn_data/
